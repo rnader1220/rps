@@ -1,8 +1,6 @@
 import random
-import tkinter as tk
 
 class Player:
-
 
     def __init__(self, window, tokens,  name,  is_user):
         self.tokens = tokens
@@ -11,36 +9,40 @@ class Player:
         self.is_user = is_user
         self.wins = 0
         self.selection = None
-        self.pikk = tk.IntVar()
-        self.pikk.set(None)
+        self.pikk = window.getVariable('string')
+        self.widgets = {}
         
-    def pick(self):
+    def catchPick(self):
         picked = self.pikk.get()
-        self.selection = self.tokens[picked]
-        print(self.selection.label)
-        return
+        for token in self.tokens:
+            if token.keystroke == picked:
+                self.selection = token
+                break
+        for token in self.tokens:
+            widget = self.widgets.pop(token.label)
+            self.window.kill(widget)
 
-
-    def select(self, window):
+    def select(self):
+        self.pikk.set(None)
         if not self.is_user:
-            self.pikk = random.choice(self.tokens)
+            self.selection = random.choice(self.tokens)
         else: 
-            icon = []
-            for i in range(len(self.tokens)):
-                icon.append(tk.PhotoImage(file=self.tokens[i].image))
-                tk.Radiobutton( \
-                    window, \
+            index = 0
+            for token in self.tokens:
+                self.window.addText("     ", row=3, col=index)
+                self.widgets[token.label] = self.window.addRadio( \
+                    caption=token.label, \
                     variable=self.pikk, \
-                    value=i, \
-                    text=self.tokens[i].label, \
-                    image= icon[i], \
-                    compound='top', \
-                    command=self.pick \
-                ).grid(column=i, row=3, padx=20, pady=10)
+                    value=token.keystroke, \
+                    command=self.catchPick, \
+                    row=4, col=index, \
+                    image=token.image )
 
-            window.mainloop()
+                index += 1
 
-            
+            self.window.wait(self.pikk)
+        return True
+    
     def test(self, token):
         if self.selection.test(token.label):
             self.wins += 1
